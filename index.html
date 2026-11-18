@@ -12,8 +12,8 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-180.png">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
-<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
+<link rel="stylesheet" crossorigin="anonymous" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+<link rel="stylesheet" crossorigin="anonymous" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
 <style>
 /* 가족 여행용 휴대폰 앱. 흰 바탕, 글씨는 검정·회색, 색은 파랑 하나(이동 · 선택된 것). 아래 탭 5개. */
 :root{
@@ -173,6 +173,7 @@ ul,ol{list-style:none}
 .maplibregl-popup-close-button{font-size:18px;padding:2px 8px}
 .pp b{display:block;font-size:15px;padding-right:14px}
 .pp span{display:block;color:#6B7280;font-size:13px;margin-top:2px}
+.pp .ppg{display:inline-block;margin:8px 0 0 6px;padding:6px 10px;border-radius:8px;background:#EEF1F6;color:#14181F;font-weight:700;font-size:13px}
 .pp a{display:inline-block;margin-top:8px;padding:6px 10px;border-radius:8px;background:#23408E;color:#fff!important;font-weight:700;font-size:13px}
 #dpanel{position:absolute;z-index:600;left:0;right:0;bottom:0;max-height:44%;overflow:auto;background:var(--card);border-radius:18px 18px 0 0;box-shadow:0 -4px 20px rgba(15,23,42,.18);overscroll-behavior:contain}
 #dpanel .hd{position:sticky;top:0;background:var(--card);display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 16px 10px;border-bottom:1px solid var(--line);z-index:1}
@@ -288,6 +289,7 @@ ul,ol{list-style:none}
 .wx .v{font-size:18px;font-weight:800}
 
 /* 택시에 보여 주기 (전체 화면) */
+#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--tabh) + env(safe-area-inset-bottom) + 16px);z-index:3000;background:rgba(20,24,31,.92);color:#fff;font-size:14px;font-weight:600;padding:10px 16px;border-radius:12px;max-width:calc(100% - 32px);text-align:center}
 #gal{position:fixed;inset:0;z-index:2100;background:#0B0E14;color:#fff;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top)}
 #gal .gh{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 16px}
 #gal .gh b{font-size:16px;font-weight:700;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -343,7 +345,7 @@ ul,ol{list-style:none}
 <div id="big" hidden></div>
 <div id="gal" hidden></div>
 
-<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<script crossorigin="anonymous" src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <script>
 (function(){
 'use strict';
@@ -382,22 +384,25 @@ async function decrypt(pw,file){
 async function unlock(pw,silent){
   const btn=$('#lf button'); btn.disabled=true; btn.textContent='여는 중…';
   try{ D=await decrypt(pw); PW=pw; LS.set('sp27.pw',pw); start();
-    galReady=decrypt(pw,'gal.bin').then(x=>{ D.gal=x.gal; renderFood(); renderSights(); }).catch(()=>{}); }
-  catch(e){ if(!silent) $('#lerr').textContent=(e && e.message==='net')?'불러오지 못했습니다. 인터넷 연결을 확인하세요':'비밀번호가 틀렸습니다'; }
+    loadGal(); }
+  catch(e){ if(silent && !(e && e.message==='net')) LS.set('sp27.pw',''); if(!silent) $('#lerr').textContent=(e && e.message==='net')?'불러오지 못했습니다. 인터넷 연결을 확인하세요':'비밀번호가 틀렸습니다'; }
   btn.disabled=false; btn.textContent='열기';
 }
+function loadGal(){ galReady=decrypt(PW,'gal.bin').then(x=>{ D.gal=x.gal; renderFood(); renderSights(); return true; }).catch(()=>{ galReady=null; return false; }); return galReady; }
 $('#lf').addEventListener('submit',e=>{e.preventDefault(); $('#lerr').textContent=''; unlock($('#pw').value.trim());});
 const saved=LS.get('sp27.pw'); if(saved) unlock(saved,true);
 if('serviceWorker' in navigator && location.protocol==='https:') navigator.serviceWorker.register('sw.js').catch(()=>{});
 
 /* ---------------- 탭 */
 let cur='plan';
+const scrollY0={};
 function go(tab,push=true){
+  if(cur!=='map') scrollY0[cur]=window.scrollY;
   cur=tab;
   document.querySelectorAll('.tabs button').forEach(b=>{ if(b.dataset.tab===tab) b.setAttribute('aria-current','page'); else b.removeAttribute('aria-current'); });
   for(const v of ['plan','map','food','sights','more']) $('#v-'+v).hidden=v!==tab;
-  if(tab==='map'){ initMap().then(()=>map.resize()); }
-  if(tab!=='map') window.scrollTo(0,0);
+  if(tab==='map'){ initMap().then(()=>{ if(map) map.resize(); }).catch(()=>{}); }
+  if(tab!=='map') window.scrollTo(0,scrollY0[tab]||0);
   if(push) history.pushState({tab},'','#'+tab);
 }
 document.querySelectorAll('.tabs button').forEach(b=>b.addEventListener('click',()=>{ if(b.dataset.tab==='more') renderMore(); go(b.dataset.tab); }));
@@ -420,7 +425,7 @@ function tripDay(){ const t=new Date(), s=new Date(D.start+'T00:00:00+09:00'), e
   if(t<s){ return {pre:Math.ceil((s-t)/864e5)}; } if(t>e) return {post:true}; return {i:Math.floor((t-s)/864e5)}; }
 let dayIdx=0, planMode='ov';
 function renderPlan(){
-  const td=tripDay(); if(td.i!=null) dayIdx=Math.min(td.i,D.days.length-1);
+  const td=tripDay(); if(td.i!=null){ dayIdx=Math.min(td.i,D.days.length-1); planMode='day'; }
   const badge=td.pre!=null?`출발까지 ${td.pre}일`:td.i!=null?`여행 ${td.i+1}일째`:'다녀왔어요';
   const v=$('#v-plan');
   v.innerHTML=`<div class="top"><div><span class="s">홋카이도 가족 여행 · 1/2 – 1/6</span><h1>${esc(D.title)}</h1></div><span class="dd">${badge}</span></div>
@@ -461,6 +466,11 @@ function paintPlan(){
 
 /* ---------------- 지도 */
 let map=null, ready=null, shown=[], filt='all', dayOn=-1, here=null;
+const PG={hanayura:['hanayura','kaiseki'],hotel:['grand'],jigoku:['jigoku'],tvtower:['tvtower'],tanuki:['tanuki'],illum:['illum'],otaru_canal:['otaru_canal'],masazushi:['masazushi'],sakaimachi:['sakaimachi'],
+  beergarden:['beergarden'],beergarden_m:['beermuseum'],sevenstar:['patchwork','sevenstar'],biei_st:['junpei'],takushinkan:['xmastree','takushinkan'],shikisai:['shikisai'],shirahige:['shirahige'],clock:['clock'],nijo:['nijo'],
+  redbrick:['redbrick'],moiwa:['moiwa'],jingu:['jingu'],susukino:['susukino','tanuki'],jrtower:['jrtower'],
+  suage4:['suage4'],garaku:['garaku'],sanpei:['sanpei'],sumire:['sumire'],matsuo:['matsuo'],daruma:['daruma'],shikihana:['shikihana'],nemuro:['nemuro'],dekitate:['dekitate'],hachikyo:['hachikyo'],kanihonke:['kanihonke'],sato:['sato'],rokkatei:['rokkatei'],daimaru:['daimaru']};
+document.addEventListener('click',e=>{ const b=e.target.closest('.ppg'); if(b) gallery(b.dataset.g.split(','),b.dataset.t); });
 const MI={
   food:'<svg viewBox="0 0 24 24"><path d="M7 3v8M4.5 3v5a2.5 2.5 0 0 0 5 0V3M7 11v10M16.5 21V3c-2.5 1.5-3.5 4-3.5 8h3.5"/></svg>',
   stay:'<svg viewBox="0 0 24 24"><path d="M3.5 11.5L12 4l8.5 7.5M6 10v10h12V10M10 20v-5h4v5"/></svg>',
@@ -469,16 +479,17 @@ const MI={
 };
 const FILTERS=[['all','전체'],['food','맛집'],['sight','볼거리'],['stay','숙소']];
 const KO=['coalesce',['get','name:ko'],['get','name:en'],['get','name:latin'],''];
-function popup(p){ return `<div class="pp"><b>${esc(p.name)}</b><span>${esc(p.sub||'')}</span><a href="${gm(p)}" target="_blank" rel="noopener">구글 지도에서 열기</a></div>`; }
+function popup(p,k){ const g=PG[k]||[]; return `<div class="pp"><b>${esc(p.name)}</b><span>${esc(p.sub||'')}</span><a href="${gm(p)}" target="_blank" rel="noopener">구글 지도에서 열기</a>${g.length?`<button class="ppg" data-g="${g.join(',')}" data-t="${esc(p.name)}">사진</button>`:''}</div>`; }
 function makeMarker(k,label,cls,showName){
   const p=D.places[k], el=document.createElement('div');
   el.className='mk '+cls; el.innerHTML=`<i>${label}</i>${showName?`<b>${esc(p.name)}</b>`:''}`;
-  const m=new maplibregl.Marker({element:el,anchor:'left',offset:[-13,0]}).setLngLat([p.lon,p.lat]).setPopup(new maplibregl.Popup({offset:18,maxWidth:'260px'}).setHTML(popup(p)));
+  const m=new maplibregl.Marker({element:el,anchor:'left',offset:[-13,0]}).setLngLat([p.lon,p.lat]).setPopup(new maplibregl.Popup({offset:18,maxWidth:'260px'}).setHTML(popup(p,k)));
   m._k=k; return m;
 }
 function initMap(){
   if(!D) return Promise.resolve();
   if(ready) return ready;
+  if(typeof maplibregl==='undefined'){ toast('지도는 인터넷이 연결되어야 보입니다'); return Promise.reject(new Error('nomap')); }
   ready=fetch('https://tiles.openfreemap.org/styles/positron').then(r=>r.json()).then(st=>{
     for(const l of st.layers){
       if(l.layout && l.layout['text-field']) l.layout['text-field']=KO;
@@ -500,7 +511,7 @@ function initMap(){
   $('#loc').addEventListener('click',()=>{ if(!navigator.geolocation) return; navigator.geolocation.getCurrentPosition(pos=>{ const ll=[pos.coords.longitude,pos.coords.latitude];
     if(!here){ const el=document.createElement('div'); el.style.cssText='width:16px;height:16px;border-radius:99px;background:#1D72F2;border:3px solid #fff;box-shadow:0 0 0 2px rgba(29,114,242,.3)'; here=new maplibregl.Marker({element:el}); }
     here.setLngLat(ll).addTo(map); map.flyTo({center:ll,zoom:15.5}); },()=>{}, {enableHighAccuracy:true,timeout:8000}); });
-  ready.then(()=>setFilter(filt,true));
+  ready.then(()=>setFilter(filt,true)).catch(()=>{ toast('지도는 인터넷이 연결되어야 보입니다'); ready=null; map=null; $('#mapf').innerHTML=''; });
   return ready;
 }
 function dayStops(i){ const out=[]; D.days[i].items.forEach(it=>{ if(it.p && !out.includes(it.p)) out.push(it.p); }); return out; }
@@ -623,10 +634,12 @@ function renderSub(s){
   v.querySelectorAll('[data-g]').forEach(b=>b.addEventListener('click',()=>gallery(b.dataset.g.split(','),b.dataset.t)));
   bindCk(v);
 }
+let toastT=null;
+function toast(msg){ let t=$('#toast'); if(!t){ t=document.createElement('div'); t.id='toast'; document.body.appendChild(t); } t.textContent=msg; t.hidden=false; clearTimeout(toastT); toastT=setTimeout(()=>t.hidden=true,2600); }
 function gcount(keys){ return (keys||[]).reduce((n,k)=>n+((D.gal[k]||[]).length),0); }
 async function gallery(keys,title){
-  if(!Object.keys(D.gal).length && galReady) await galReady;
-  const imgs=keys.flatMap(k=>D.gal[k]||[]); if(!imgs.length) return;
+  if(!Object.keys(D.gal).length){ toast('사진 불러오는 중…'); const ok=await (galReady||loadGal()); if(!ok){ toast('사진을 불러오지 못했습니다. 인터넷 연결을 확인하세요'); return; } }
+  const imgs=keys.flatMap(k=>D.gal[k]||[]); if(!imgs.length){ toast('사진이 없습니다'); return; }
   const g=$('#gal');
   g.innerHTML=`<div class="gh"><b>${esc(title)}</b><button id="gx">닫기</button></div><div class="gs">${imgs.map(s=>`<div><img src="${s}" alt=""></div>`).join('')}</div><div class="gc"><span id="gn">1</span> / ${imgs.length} · 옆으로 넘기기</div>`;
   g.hidden=false; history.pushState({tab:cur,gal:1},'','#'+cur);
