@@ -372,15 +372,17 @@ const telh=t=>'tel:'+String(t).replace(/[^\d+]/g,'');
 
 /* ---------------- 잠금 해제 */
 async function getBuf(){ if(!buf){ const r=await fetch('data.bin',{cache:'no-cache'}); if(!r.ok) throw new Error('net'); buf=new Uint8Array(await r.arrayBuffer()); } return buf; }
-async function decrypt(pw){
-  const b=await getBuf(), salt=b.slice(0,16), iv=b.slice(16,28), ct=b.slice(28);
+let PW='', galReady=null;
+async function decrypt(pw,file){
+  const b=file?new Uint8Array(await (await fetch(file,{cache:'no-cache'})).arrayBuffer()):await getBuf(), salt=b.slice(0,16), iv=b.slice(16,28), ct=b.slice(28);
   const base=await crypto.subtle.importKey('raw',new TextEncoder().encode(pw),'PBKDF2',false,['deriveKey']);
   const key=await crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:ITER,hash:'SHA-256'},base,{name:'AES-GCM',length:256},false,['decrypt']);
   return JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({name:'AES-GCM',iv},key,ct)));
 }
 async function unlock(pw,silent){
   const btn=$('#lf button'); btn.disabled=true; btn.textContent='여는 중…';
-  try{ D=await decrypt(pw); LS.set('sp27.pw',pw); start(); }
+  try{ D=await decrypt(pw); PW=pw; LS.set('sp27.pw',pw); start();
+    galReady=decrypt(pw,'gal.bin').then(x=>{ D.gal=x.gal; renderFood(); renderSights(); }).catch(()=>{}); }
   catch(e){ if(!silent) $('#lerr').textContent=(e && e.message==='net')?'불러오지 못했습니다. 인터넷 연결을 확인하세요':'비밀번호가 틀렸습니다'; }
   btn.disabled=false; btn.textContent='열기';
 }
@@ -475,7 +477,8 @@ function makeMarker(k,label,cls,showName){
   m._k=k; return m;
 }
 function initMap(){
-  if(map) return ready;
+  if(!D) return Promise.resolve();
+  if(ready) return ready;
   ready=fetch('https://tiles.openfreemap.org/styles/positron').then(r=>r.json()).then(st=>{
     for(const l of st.layers){
       if(l.layout && l.layout['text-field']) l.layout['text-field']=KO;
@@ -493,14 +496,15 @@ function initMap(){
     });
   });
   $('#mapf').innerHTML=FILTERS.map(f=>`<button class="chip" data-f="${f[0]}">${f[1]}</button>`).join('')+D.days.map((d,i)=>`<button class="chip" data-f="d${i}">${d.date}<small>${d.dow[0]}</small></button>`).join('');
-  $('#mapf').querySelectorAll('.chip').forEach(b=>b.addEventListener('click',()=>setFilter(b.dataset.f)));
+  $('#mapf').querySelectorAll('.chip').forEach(b=>b.addEventListener('click',()=>{ filt=b.dataset.f; ready.then(()=>setFilter(b.dataset.f)); }));
   $('#loc').addEventListener('click',()=>{ if(!navigator.geolocation) return; navigator.geolocation.getCurrentPosition(pos=>{ const ll=[pos.coords.longitude,pos.coords.latitude];
     if(!here){ const el=document.createElement('div'); el.style.cssText='width:16px;height:16px;border-radius:99px;background:#1D72F2;border:3px solid #fff;box-shadow:0 0 0 2px rgba(29,114,242,.3)'; here=new maplibregl.Marker({element:el}); }
     here.setLngLat(ll).addTo(map); map.flyTo({center:ll,zoom:15.5}); },()=>{}, {enableHighAccuracy:true,timeout:8000}); });
   ready.then(()=>setFilter(filt,true));
   return ready;
 }
-function dayStops(i){ const out=[]; D.days[i].items.forEach(it=>{ if(it.p && (!out.length || out[out.length-1]!==it.p)) out.push(it.p); }); return out; }
+function dayStops(i){ const out=[]; D.days[i].items.forEach(it=>{ if(it.p && !out.includes(it.p)) out.push(it.p); }); return out; }
+function route(data){ const s=map&&map.getSource('route'); if(s) s.setData(data); }
 function clearMarkers(){ shown.forEach(m=>m.remove()); shown=[]; }
 function padding(){ const wide=innerWidth>=700, pan=!$('#dpanel').hidden; return {top:70,left:40,right:wide&&pan?390:40,bottom:pan&&!wide?Math.round(innerHeight*.44)+20:40}; }
 function fit(pts){ if(!pts.length) return; if(pts.length===1){ map.jumpTo({center:pts[0],zoom:15.5}); return; }
@@ -512,16 +516,16 @@ function setFilter(f,keepView){
   if(f[0]==='d'){
     dayOn=+f.slice(1); const stops=dayStops(dayOn);
     stops.forEach((k,i)=>{ const p=D.places[k]; pts.push([p.lon,p.lat]); shown.push(makeMarker(k,i+1,'day',true).addTo(map)); });
-    map.getSource('route').setData({type:'Feature',geometry:{type:'LineString',coordinates:pts}});
+    route({type:'Feature',geometry:{type:'LineString',coordinates:pts}});
     renderPanel(dayOn,stops);
   } else {
-    dayOn=-1; $('#dpanel').hidden=true; map.getSource('route').setData({type:'FeatureCollection',features:[]});
+    dayOn=-1; $('#dpanel').hidden=true; route({type:'FeatureCollection',features:[]});
     for(const [k,p] of Object.entries(D.places)){
       if(p.kind==='spot') continue;
       if(f==='all'||p.kind===f){ shown.push(makeMarker(k,MI[p.kind],p.kind,p.kind!=='food'||f==='food').addTo(map)); pts.push([p.lon,p.lat]); }
     }
   }
-  if(!(keepView && f==='all')) fit(pts);
+  if(!(keepView && f==='all')) fit(f[0]==='d'||f==='stay'?pts:pts.filter(p=>p[1]>42.9));  // 전체·맛집·볼거리는 삿포로 시내만 맞춤
 }
 function renderPanel(i,stops){
   const d=D.days[i], pn=$('#dpanel');
@@ -620,7 +624,8 @@ function renderSub(s){
   bindCk(v);
 }
 function gcount(keys){ return (keys||[]).reduce((n,k)=>n+((D.gal[k]||[]).length),0); }
-function gallery(keys,title){
+async function gallery(keys,title){
+  if(!Object.keys(D.gal).length && galReady) await galReady;
   const imgs=keys.flatMap(k=>D.gal[k]||[]); if(!imgs.length) return;
   const g=$('#gal');
   g.innerHTML=`<div class="gh"><b>${esc(title)}</b><button id="gx">닫기</button></div><div class="gs">${imgs.map(s=>`<div><img src="${s}" alt=""></div>`).join('')}</div><div class="gc"><span id="gn">1</span> / ${imgs.length} · 옆으로 넘기기</div>`;
