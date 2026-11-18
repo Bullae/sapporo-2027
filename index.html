@@ -13,7 +13,7 @@
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
 <style>
 /* 가족 여행용 휴대폰 앱. 흰 바탕, 글씨는 검정·회색, 색은 파랑 하나(이동 · 선택된 것). 아래 탭 5개. */
 :root{
@@ -129,18 +129,37 @@ ul,ol{list-style:none}
 #map{position:absolute;inset:0;background:var(--soft)}
 .mapbar{position:absolute;z-index:500;left:0;right:0;top:calc(env(safe-area-inset-top) + 10px);padding:0 12px}
 .mapbar .chips .chip{box-shadow:0 2px 8px rgba(15,23,42,.14);border-color:transparent}
-.mk{display:flex;align-items:center;justify-content:center;border-radius:99px;color:#fff;font-weight:800;font-family:var(--f);border:2.5px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.3)}
-.mk.food{background:#23408E;font-size:12px}
-.mk.stay{background:#14181F;font-size:13px}
-.mk.sight{background:#fff;color:#23408E;border-color:#23408E;font-size:13px}
-.mk.spot{background:#6B7280;font-size:12px}
-.mk.day{background:#23408E;font-size:13px}
-.leaflet-popup-content-wrapper{border-radius:14px}
-.leaflet-popup-content{margin:12px 14px;font-family:var(--f);font-size:14px;line-height:1.4;color:#14181F}
-.pp b{display:block;font-size:15px}
+.mk{display:flex;align-items:center;gap:4px;cursor:pointer}
+.mk i{display:flex;align-items:center;justify-content:center;border-radius:99px;color:#fff;font-style:normal;font-weight:800;font-family:var(--f);border:2.5px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.3);flex:none}
+.mk.food i{background:#23408E;font-size:12px;width:26px;height:26px}
+.mk.stay i{background:#14181F;font-size:13px;width:30px;height:30px}
+.mk.sight i{background:#fff;color:#23408E;border-color:#23408E;font-size:13px;width:26px;height:26px}
+.mk.spot i{background:#6B7280;font-size:11px;width:22px;height:22px}
+.mk.day i{background:#23408E;font-size:13px;width:28px;height:28px}
+.mk b{font-size:12px;font-weight:700;color:#14181F;background:rgba(255,255,255,.88);padding:1px 5px;border-radius:6px;white-space:nowrap;font-family:var(--f);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.maplibregl-popup-content{border-radius:14px;padding:12px 14px;font-family:var(--f);font-size:14px;line-height:1.4;color:#14181F}
+.maplibregl-popup-close-button{font-size:18px;padding:2px 8px}
+.pp b{display:block;font-size:15px;padding-right:14px}
 .pp span{display:block;color:#6B7280;font-size:13px;margin-top:2px}
 .pp a{display:inline-block;margin-top:8px;padding:6px 10px;border-radius:8px;background:#23408E;color:#fff!important;font-weight:700;font-size:13px}
-.locbtn{position:absolute;z-index:500;right:12px;bottom:110px;width:44px;height:44px;border-radius:12px;background:var(--card);box-shadow:0 2px 8px rgba(15,23,42,.2);display:flex;align-items:center;justify-content:center}
+#dpanel{position:absolute;z-index:600;left:0;right:0;bottom:0;max-height:44%;overflow:auto;background:var(--card);border-radius:18px 18px 0 0;box-shadow:0 -4px 20px rgba(15,23,42,.18);overscroll-behavior:contain}
+#dpanel .hd{position:sticky;top:0;background:var(--card);display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 16px 10px;border-bottom:1px solid var(--line);z-index:1}
+#dpanel .hd b{font-size:17px;font-weight:800}
+#dpanel .hd span{font-size:13px;color:var(--muted);font-weight:600;margin-left:6px}
+#dpanel .hd button{font-size:14px;font-weight:700;color:var(--muted);padding:4px 6px}
+#dpanel li{display:grid;grid-template-columns:24px 46px 1fr;gap:8px;align-items:start;padding:9px 16px;font-size:14px}
+#dpanel li+li{border-top:1px solid var(--line)}
+#dpanel li.on{background:var(--accent-soft)}
+#dpanel li[data-p]{cursor:pointer}
+#dpanel .n{width:22px;height:22px;border-radius:99px;background:var(--accent);color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;margin-top:1px}
+#dpanel .n.x{background:transparent}
+#dpanel .t{font-weight:700;font-variant-numeric:tabular-nums}
+#dpanel li.mv .t,#dpanel .tg{color:var(--accent)}
+#dpanel .tg{font-style:normal;font-size:11px;font-weight:800;margin-right:5px;background:var(--accent-soft);padding:1px 5px;border-radius:5px}
+#dpanel .c b{font-weight:700;margin-right:5px}
+#dpanel .how{display:block;font-size:12px;color:var(--muted)}
+@media (min-width:700px){#dpanel{left:auto;top:calc(env(safe-area-inset-top) + 62px);right:12px;bottom:12px;width:360px;max-height:none;border-radius:16px;box-shadow:0 4px 20px rgba(15,23,42,.18)}}
+.locbtn{position:absolute;z-index:500;right:12px;bottom:24px;width:44px;height:44px;border-radius:12px;background:var(--card);box-shadow:0 2px 8px rgba(15,23,42,.2);display:flex;align-items:center;justify-content:center}
 .locbtn svg{width:22px;height:22px;stroke:var(--accent);fill:none;stroke-width:2;stroke-linecap:round}
 
 /* ---------- 맛집 · 볼거리 */
@@ -238,7 +257,7 @@ ul,ol{list-style:none}
   <h1>겨울,<br>삿포로</h1>
   <span class="d">2027. 1. 2 – 1. 6</span>
   <form id="lf" autocomplete="off">
-    <input id="pw" type="password" inputmode="text" placeholder="비밀번호" aria-label="비밀번호" autocapitalize="off" autocorrect="off">
+    <input id="pw" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="8" placeholder="비밀번호 (숫자)" aria-label="비밀번호" autocomplete="off" enterkeyhint="go">
     <button type="submit">열기</button>
     <span class="err" id="lerr" role="alert"></span>
   </form>
@@ -249,6 +268,7 @@ ul,ol{list-style:none}
   <section class="view" id="v-map" hidden>
     <div id="map"></div>
     <div class="mapbar"><div class="chips" id="mapf"></div></div>
+    <aside id="dpanel" hidden></aside>
     <button class="locbtn" id="loc" aria-label="내 위치"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.5"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="8"/></svg></button>
   </section>
   <section class="view" id="v-food" hidden></section>
@@ -264,7 +284,7 @@ ul,ol{list-style:none}
 </div>
 <div id="big" hidden></div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <script>
 (function(){
 'use strict';
@@ -314,7 +334,7 @@ function go(tab,push=true){
   cur=tab;
   document.querySelectorAll('.tabs button').forEach(b=>{ if(b.dataset.tab===tab) b.setAttribute('aria-current','page'); else b.removeAttribute('aria-current'); });
   for(const v of ['plan','map','food','sights','more']) $('#v-'+v).hidden=v!==tab;
-  if(tab==='map'){ initMap(); setTimeout(()=>map.invalidateSize(),30); }
+  if(tab==='map'){ initMap().then(()=>map.resize()); }
   if(tab!=='map') window.scrollTo(0,0);
   if(push) history.pushState({tab},'','#'+tab);
 }
@@ -365,52 +385,91 @@ function paintPlan(){
   <div class="btns"><button class="btn p" id="dmap">${IC.map}이 날 지도 보기</button></div>`;
   pb.querySelectorAll('.chip').forEach(b=>b.addEventListener('click',()=>{dayIdx=+b.dataset.i; paintPlan();}));
   pb.querySelectorAll('[data-p]').forEach(b=>b.addEventListener('click',()=>focusPlace(b.dataset.p)));
-  $('#dmap').addEventListener('click',()=>{ go('map'); setFilter('d'+dayIdx); });
+  $('#dmap').addEventListener('click',()=>{ filt='d'+dayIdx; go('map'); initMap().then(()=>{ map.resize(); setFilter('d'+dayIdx); }); });
 }
 
 /* ---------------- 지도 */
-let map=null, mk={}, layer=null, filt='all';
+let map=null, ready=null, shown=[], filt='all', dayOn=-1, here=null;
 const FILTERS=[['all','전체'],['food','맛집'],['sight','볼거리'],['stay','숙소']];
-function icon(p,label,cls){ const s=cls==='stay'?30:26; return L.divIcon({className:'',html:`<div class="mk ${cls}" style="width:${s}px;height:${s}px">${label}</div>`,iconSize:[s,s],iconAnchor:[s/2,s/2],popupAnchor:[0,-s/2]}); }
+const KO=['coalesce',['get','name:ko'],['get','name:en'],['get','name:latin'],''];
 function popup(p){ return `<div class="pp"><b>${esc(p.name)}</b><span>${esc(p.sub||'')}</span><a href="${gm(p)}" target="_blank" rel="noopener">구글 지도에서 열기</a></div>`; }
-function markerFor(k,label,cls){ const p=D.places[k]; return L.marker([p.lat,p.lon],{icon:icon(p,label,cls),riseOnHover:true}).bindPopup(popup(p)); }
+function makeMarker(k,label,cls,showName){
+  const p=D.places[k], el=document.createElement('div');
+  el.className='mk '+cls; el.innerHTML=`<i>${label}</i>${showName?`<b>${esc(p.name)}</b>`:''}`;
+  const m=new maplibregl.Marker({element:el,anchor:'left',offset:[-13,0]}).setLngLat([p.lon,p.lat]).setPopup(new maplibregl.Popup({offset:18,maxWidth:'260px'}).setHTML(popup(p)));
+  m._k=k; return m;
+}
 function initMap(){
-  if(map) return;
-  map=L.map('map',{zoomControl:false,attributionControl:true}).setView([43.0615,141.3515],15);
-  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(map);
-  L.control.zoom({position:'bottomright'}).addTo(map);
-  for(const [k,p] of Object.entries(D.places)){
-    const lab=p.kind==='food'?p.n:p.kind==='stay'?'H':p.kind==='sight'?'★':'•';
-    mk[k]=markerFor(k,lab,p.kind);
-  }
+  if(map) return ready;
+  ready=fetch('https://tiles.openfreemap.org/styles/positron').then(r=>r.json()).then(st=>{
+    for(const l of st.layers){
+      if(l.layout && l.layout['text-field']) l.layout['text-field']=KO;
+      if(/neighbourhood|quarter|housenumber|shield|poi/.test(l.id)) (l.layout=l.layout||{}).visibility='none';
+    }
+    map=new maplibregl.Map({container:'map',style:st,center:[141.3515,43.0615],zoom:14.3,attributionControl:{compact:true},dragRotate:false,pitchWithRotate:false});
+    map.touchZoomRotate.disableRotation();
+    map.addControl(new maplibregl.NavigationControl({showCompass:false}),'bottom-right');
+    return new Promise(res=>{
+      const done=()=>{ if(!map.getSource('route')){
+        map.addSource('route',{type:'geojson',data:{type:'FeatureCollection',features:[]}});
+        map.addLayer({id:'route',type:'line',source:'route',paint:{'line-color':'#23408E','line-width':3,'line-opacity':.75,'line-dasharray':[2,2]}}); }
+        res(); };
+      map.once('style.load',done); map.once('load',done);
+    });
+  });
   $('#mapf').innerHTML=FILTERS.map(f=>`<button class="chip" data-f="${f[0]}">${f[1]}</button>`).join('')+D.days.map((d,i)=>`<button class="chip" data-f="d${i}">${d.date}<small>${d.dow[0]}</small></button>`).join('');
   $('#mapf').querySelectorAll('.chip').forEach(b=>b.addEventListener('click',()=>setFilter(b.dataset.f)));
-  $('#loc').addEventListener('click',()=>{ if(!navigator.geolocation) return; navigator.geolocation.getCurrentPosition(pos=>{ const ll=[pos.coords.latitude,pos.coords.longitude]; L.circleMarker(ll,{radius:8,color:'#fff',weight:3,fillColor:'#1D72F2',fillOpacity:1}).addTo(map); map.setView(ll,16); },()=>{}, {enableHighAccuracy:true,timeout:8000}); });
-  setFilter('all',true);
+  $('#loc').addEventListener('click',()=>{ if(!navigator.geolocation) return; navigator.geolocation.getCurrentPosition(pos=>{ const ll=[pos.coords.longitude,pos.coords.latitude];
+    if(!here){ const el=document.createElement('div'); el.style.cssText='width:16px;height:16px;border-radius:99px;background:#1D72F2;border:3px solid #fff;box-shadow:0 0 0 2px rgba(29,114,242,.3)'; here=new maplibregl.Marker({element:el}); }
+    here.setLngLat(ll).addTo(map); map.flyTo({center:ll,zoom:15.5}); },()=>{}, {enableHighAccuracy:true,timeout:8000}); });
+  ready.then(()=>setFilter(filt,true));
+  return ready;
 }
+function dayStops(i){ const out=[]; D.days[i].items.forEach(it=>{ if(it.p && (!out.length || out[out.length-1]!==it.p)) out.push(it.p); }); return out; }
+function clearMarkers(){ shown.forEach(m=>m.remove()); shown=[]; }
+function padding(){ const wide=innerWidth>=700, pan=!$('#dpanel').hidden; return {top:70,left:40,right:wide&&pan?390:40,bottom:pan&&!wide?Math.round(innerHeight*.44)+20:40}; }
+function fit(pts){ if(!pts.length) return; if(pts.length===1){ map.jumpTo({center:pts[0],zoom:15.5}); return; }
+  const b=pts.reduce((bb,p)=>bb.extend(p),new maplibregl.LngLatBounds(pts[0],pts[0])); map.fitBounds(b,{padding:padding(),maxZoom:15.5,duration:0}); }
 function setFilter(f,keepView){
-  if(!map){ initMap(); }
-  filt=f; if(layer) layer.remove(); layer=L.layerGroup().addTo(map);
+  filt=f; if(!map) return;
   $('#mapf').querySelectorAll('.chip').forEach(b=>b.setAttribute('aria-pressed',b.dataset.f===f));
-  let pts=[];
+  clearMarkers(); const pts=[];
   if(f[0]==='d'){
-    const d=D.days[+f.slice(1)];
-    d.spots.forEach((k,i)=>{ const p=D.places[k]; pts.push([p.lat,p.lon]); markerFor(k,i+1,'day').addTo(layer); });
-    L.polyline(pts,{color:'#23408E',weight:3,opacity:.7,dashArray:'6 8'}).addTo(layer);
+    dayOn=+f.slice(1); const stops=dayStops(dayOn);
+    stops.forEach((k,i)=>{ const p=D.places[k]; pts.push([p.lon,p.lat]); shown.push(makeMarker(k,i+1,'day',true).addTo(map)); });
+    map.getSource('route').setData({type:'Feature',geometry:{type:'LineString',coordinates:pts}});
+    renderPanel(dayOn,stops);
   } else {
+    dayOn=-1; $('#dpanel').hidden=true; map.getSource('route').setData({type:'FeatureCollection',features:[]});
     for(const [k,p] of Object.entries(D.places)){
       if(p.kind==='spot') continue;
-      if(f==='all'||p.kind===f){ mk[k].addTo(layer); pts.push([p.lat,p.lon]); }
+      if(f==='all'||p.kind===f){ const lab=p.kind==='food'?p.n:p.kind==='stay'?'H':'★'; shown.push(makeMarker(k,lab,p.kind,p.kind!=='food'||f==='food').addTo(map)); pts.push([p.lon,p.lat]); }
     }
   }
-  if(!keepView && pts.length) map.fitBounds(L.latLngBounds(pts).pad(.15),{maxZoom:16});
-  if(keepView && f==='all') map.setView([43.0615,141.3515],15);
+  if(!(keepView && f==='all')) fit(pts);
+}
+function renderPanel(i,stops){
+  const d=D.days[i], pn=$('#dpanel');
+  pn.innerHTML=`<div class="hd"><div><b>${d.date}</b><span>${d.dow} · ${esc(d.title)}</span></div><button id="pclose">닫기</button></div><ol>${d.items.map(it=>{ const n=it.p?stops.indexOf(it.p)+1:0;
+    return `<li class="${it.mv?'mv':''}" ${it.p?`data-p="${it.p}"`:''}><span class="n ${n?'':'x'}">${n||''}</span><span class="t">${esc(it.t)}</span><div class="c">${it.html}</div></li>`; }).join('')}</ol>`;
+  pn.hidden=false; pn.scrollTop=0;
+  $('#pclose').addEventListener('click',()=>{ pn.hidden=true; });
+  pn.querySelectorAll('li[data-p]').forEach(li=>li.addEventListener('click',()=>{
+    pn.querySelectorAll('li').forEach(x=>x.classList.toggle('on',x===li));
+    const k=li.dataset.p, p=D.places[k], m=shown.find(x=>x._k===k);
+    map.flyTo({center:[p.lon,p.lat],zoom:15.5,padding:padding()}); if(m && !m.getPopup().isOpen()) m.togglePopup();
+  }));
 }
 function focusPlace(k){
   go('map'); const p=D.places[k]; if(!p) return;
-  if(filt[0]==='d' || (filt!=='all' && filt!==p.kind) || p.kind==='spot'){ setFilter(p.kind==='spot'?'all':(filt==='all'?'all':p.kind),true); }
-  const m=mk[k]; if(!layer.hasLayer(m)) m.addTo(layer);
-  setTimeout(()=>{ map.invalidateSize(); map.setView([p.lat,p.lon],16); m.openPopup(); },60);
+  initMap().then(()=>{
+    map.resize();
+    const inDay=filt[0]==='d' && dayStops(+filt.slice(1)).includes(k);
+    if(!inDay){ const f=(filt==='all'||filt===p.kind)&&p.kind!=='spot'?filt:'all'; setFilter(f,true);
+      if(!shown.find(x=>x._k===k)){ const lab=p.kind==='food'?p.n:p.kind==='stay'?'H':p.kind==='sight'?'★':'•'; shown.push(makeMarker(k,lab,p.kind,true).addTo(map)); } }
+    const m=shown.find(x=>x._k===k);
+    map.jumpTo({center:[p.lon,p.lat],zoom:15.5}); if(m && !m.getPopup().isOpen()) m.togglePopup();
+  });
 }
 
 /* ---------------- 맛집 */
@@ -422,7 +481,7 @@ function renderFood(){
   <div id="fbody"></div>
   <div class="btns" style="margin-top:18px"><button class="btn p" id="fmap">${IC.map}맛집 전부 지도에서 보기</button></div>`;
   v.querySelectorAll('#aseg button').forEach(b=>b.addEventListener('click',()=>{area=+b.dataset.a; paintFood();}));
-  $('#fmap').addEventListener('click',()=>{ go('map'); setFilter('food'); });
+  $('#fmap').addEventListener('click',()=>{ filt='food'; go('map'); initMap().then(()=>{ map.resize(); setFilter('food'); }); });
   paintFood();
 }
 function paintFood(){
