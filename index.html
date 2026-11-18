@@ -111,7 +111,8 @@ ul,ol{list-style:none}
 .tl .c b{font-weight:700;font-size:15px;margin-right:6px}
 .tl .tg{font-style:normal;font-size:12px;font-weight:800;margin-right:6px;background:var(--accent-soft);padding:1px 6px;border-radius:6px;position:relative;top:-1px}
 .tl .how{display:block;font-size:13px;color:var(--muted);margin-top:1px}
-.tl .go{width:30px;height:30px;border-radius:99px;background:var(--soft);display:flex;align-items:center;justify-content:center}
+.tl .acts{display:flex;gap:6px}
+.tl .go{width:32px;height:32px;border-radius:99px;background:var(--soft);display:flex;align-items:center;justify-content:center}
 .tl .go svg{width:16px;height:16px;stroke:var(--accent);fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
 .wk{padding:10px 8px 8px 0;overflow:hidden}
 .wh,.ws{display:grid;grid-template-columns:30px repeat(5,1fr);gap:3px;align-items:end}
@@ -158,10 +159,13 @@ ul,ol{list-style:none}
 .mapbar .chips .chip{box-shadow:0 2px 8px rgba(15,23,42,.14);border-color:transparent}
 .mk{display:flex;align-items:center;gap:4px;cursor:pointer}
 .mk i{display:flex;align-items:center;justify-content:center;border-radius:99px;color:#fff;font-style:normal;font-weight:800;font-family:var(--f);border:2.5px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.3);flex:none}
-.mk.food i{background:#23408E;font-size:12px;width:26px;height:26px}
-.mk.stay i{background:#14181F;font-size:13px;width:30px;height:30px}
-.mk.sight i{background:#fff;color:#23408E;border-color:#23408E;font-size:13px;width:26px;height:26px}
-.mk.spot i{background:#6B7280;font-size:11px;width:22px;height:22px}
+.mk.food i{background:#23408E;width:28px;height:28px}
+.mk.stay i{background:#14181F;width:32px;height:32px}
+.mk.sight i{background:#fff;border-color:#23408E;width:28px;height:28px}
+.mk.sight i svg.fill{fill:#23408E}
+.mk.spot i{background:#6B7280;width:22px;height:22px}
+.mk i svg{width:60%;height:60%;fill:none;stroke:#fff;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.mk i svg.fill,.mk i svg .fill{fill:#fff;stroke:none}
 .mk.day i{background:#23408E;font-size:13px;width:28px;height:28px}
 .mk b{font-size:12px;font-weight:700;color:#14181F;background:rgba(255,255,255,.88);padding:1px 5px;border-radius:6px;white-space:nowrap;font-family:var(--f);box-shadow:0 1px 2px rgba(0,0,0,.12)}
 .maplibregl-popup-content{border-radius:14px;padding:12px 14px;font-family:var(--f);font-size:14px;line-height:1.4;color:#14181F}
@@ -268,6 +272,15 @@ ul,ol{list-style:none}
 .wx .v{font-size:18px;font-weight:800}
 
 /* 택시에 보여 주기 (전체 화면) */
+#gal{position:fixed;inset:0;z-index:2100;background:#0B0E14;color:#fff;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top)}
+#gal .gh{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 16px}
+#gal .gh b{font-size:16px;font-weight:700;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#gal .gh button{flex:none;font-size:15px;font-weight:700;padding:8px 12px;border-radius:10px;background:rgba(255,255,255,.14);color:#fff}
+#gal .gs{flex:1;display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none}
+#gal .gs::-webkit-scrollbar{display:none}
+#gal .gs div{flex:0 0 100%;scroll-snap-align:center;display:flex;align-items:center;justify-content:center;padding:8px}
+#gal .gs img{max-width:100%;max-height:100%;object-fit:contain;border-radius:8px}
+#gal .gc{text-align:center;font-size:13px;opacity:.75;padding:10px 0 calc(env(safe-area-inset-bottom) + 14px)}
 #big{position:fixed;inset:0;z-index:2000;background:#fff;color:#000;display:flex;flex-direction:column;justify-content:center;gap:18px;padding:calc(env(safe-area-inset-top) + 24px) 24px calc(env(safe-area-inset-bottom) + 24px)}
 #big .say{font-size:20px;font-weight:700}
 #big .say span{display:block;font-family:var(--f-jp);font-size:22px;margin-top:4px}
@@ -310,6 +323,7 @@ ul,ol{list-style:none}
   </div></nav>
 </div>
 <div id="big" hidden></div>
+<div id="gal" hidden></div>
 
 <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <script>
@@ -320,6 +334,7 @@ const $=(s,r=document)=>r.querySelector(s);
 const LS={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
 let D=null, buf=null;
 const IC={
+  cam:'<svg viewBox="0 0 24 24"><path d="M4 8h3l1.5-2.5h7L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>',
   map:'<svg viewBox="0 0 24 24"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg>',
   ext:'<svg viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>',
   tel:'<svg viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg>',
@@ -368,6 +383,7 @@ function go(tab,push=true){
 document.querySelectorAll('.tabs button').forEach(b=>b.addEventListener('click',()=>{ if(b.dataset.tab==='more') renderMore(); go(b.dataset.tab); }));
 window.addEventListener('popstate',e=>{
   if(!$('#big').hidden){ $('#big').hidden=true; return; }
+  if(!$('#gal').hidden){ $('#gal').hidden=true; return; }
   const s=e.state||{}; if(s.sub) renderSub(s.sub); else if(cur==='more') renderMore();
   go(s.tab||'plan',false);
 });
@@ -415,15 +431,22 @@ function paintPlan(){
     <div class="card mini"><span class="l">챙길 것</span><div class="packs">${d.pack.map(p=>`<span>${esc(p)}</span>`).join('')}</div></div>
   </div>
   <div class="card meals" style="margin-top:10px">${d.meals.map(m=>`<div><span class="l">${m.l}</span><span class="v ${m.tbd?'u':''}">${esc(m.v)}</span><span class="x">${esc(m.x)}</span></div>`).join('')}</div>
-  <div class="sec"><h2>시간표</h2><ol class="card tl">${d.items.map(it=>`<li class="${it.mv?'mv':''}"><span class="t">${esc(it.t)}</span><div class="c">${it.html}</div>${it.p?`<button class="go" data-p="${it.p}" aria-label="지도에서 보기">${IC.map}</button>`:'<span></span>'}</li>`).join('')}</ol></div>
+  <div class="sec"><h2>시간표</h2><ol class="card tl">${d.items.map(it=>`<li class="${it.mv?'mv':''}"><span class="t">${esc(it.t)}</span><div class="c">${it.html}</div><span class="acts">${it.ph&&it.ph.length?`<button class="go" data-g="${it.ph.join(',')}" data-t="${esc(it.html.replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim())}" aria-label="사진 보기">${IC.cam}</button>`:''}${it.p?`<button class="go" data-p="${it.p}" aria-label="지도에서 보기">${IC.map}</button>`:''}</span></li>`).join('')}</ol></div>
   <div class="btns"><button class="btn p" id="dmap">${IC.map}이 날 지도 보기</button></div>`;
   pb.querySelectorAll('.chip').forEach(b=>b.addEventListener('click',()=>{dayIdx=+b.dataset.i; paintPlan();}));
+  pb.querySelectorAll('[data-g]').forEach(b=>b.addEventListener('click',()=>gallery(b.dataset.g.split(','),b.dataset.t)));
   pb.querySelectorAll('[data-p]').forEach(b=>b.addEventListener('click',()=>focusPlace(b.dataset.p)));
   $('#dmap').addEventListener('click',()=>{ filt='d'+dayIdx; go('map'); initMap().then(()=>{ map.resize(); setFilter('d'+dayIdx); }); });
 }
 
 /* ---------------- 지도 */
 let map=null, ready=null, shown=[], filt='all', dayOn=-1, here=null;
+const MI={
+  food:'<svg viewBox="0 0 24 24"><path d="M7 3v8M4.5 3v5a2.5 2.5 0 0 0 5 0V3M7 11v10M16.5 21V3c-2.5 1.5-3.5 4-3.5 8h3.5"/></svg>',
+  stay:'<svg viewBox="0 0 24 24"><path d="M3.5 11.5L12 4l8.5 7.5M6 10v10h12V10M10 20v-5h4v5"/></svg>',
+  sight:'<svg viewBox="0 0 24 24" class="fill"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/></svg>',
+  spot:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.5" class="fill"/></svg>'
+};
 const FILTERS=[['all','전체'],['food','맛집'],['sight','볼거리'],['stay','숙소']];
 const KO=['coalesce',['get','name:ko'],['get','name:en'],['get','name:latin'],''];
 function popup(p){ return `<div class="pp"><b>${esc(p.name)}</b><span>${esc(p.sub||'')}</span><a href="${gm(p)}" target="_blank" rel="noopener">구글 지도에서 열기</a></div>`; }
@@ -477,7 +500,7 @@ function setFilter(f,keepView){
     dayOn=-1; $('#dpanel').hidden=true; map.getSource('route').setData({type:'FeatureCollection',features:[]});
     for(const [k,p] of Object.entries(D.places)){
       if(p.kind==='spot') continue;
-      if(f==='all'||p.kind===f){ const lab=p.kind==='food'?p.n:p.kind==='stay'?'H':'★'; shown.push(makeMarker(k,lab,p.kind,p.kind!=='food'||f==='food').addTo(map)); pts.push([p.lon,p.lat]); }
+      if(f==='all'||p.kind===f){ shown.push(makeMarker(k,MI[p.kind],p.kind,p.kind!=='food'||f==='food').addTo(map)); pts.push([p.lon,p.lat]); }
     }
   }
   if(!(keepView && f==='all')) fit(pts);
@@ -500,7 +523,7 @@ function focusPlace(k){
     map.resize();
     const inDay=filt[0]==='d' && dayStops(+filt.slice(1)).includes(k);
     if(!inDay){ const f=(filt==='all'||filt===p.kind)&&p.kind!=='spot'?filt:'all'; setFilter(f,true);
-      if(!shown.find(x=>x._k===k)){ const lab=p.kind==='food'?p.n:p.kind==='stay'?'H':p.kind==='sight'?'★':'•'; shown.push(makeMarker(k,lab,p.kind,true).addTo(map)); } }
+      if(!shown.find(x=>x._k===k)){ shown.push(makeMarker(k,MI[p.kind],p.kind,true).addTo(map)); } }
     const m=shown.find(x=>x._k===k);
     map.jumpTo({center:[p.lon,p.lat],zoom:15.5}); if(m && !m.getPopup().isOpen()) m.togglePopup();
   });
@@ -574,6 +597,14 @@ function renderSub(s){
   v.querySelectorAll('[data-p]').forEach(b=>b.addEventListener('click',()=>focusPlace(b.dataset.p)));
   v.querySelectorAll('.show').forEach(b=>b.addEventListener('click',()=>bigShow(D.shows[+b.dataset.i])));
   bindCk(v);
+}
+function gallery(keys,title){
+  const imgs=keys.flatMap(k=>D.gal[k]||[]); if(!imgs.length) return;
+  const g=$('#gal');
+  g.innerHTML=`<div class="gh"><b>${esc(title)}</b><button id="gx">닫기</button></div><div class="gs">${imgs.map(s=>`<div><img src="${s}" alt=""></div>`).join('')}</div><div class="gc"><span id="gn">1</span> / ${imgs.length} · 옆으로 넘기기</div>`;
+  g.hidden=false; history.pushState({tab:cur,gal:1},'','#'+cur);
+  const gs=g.querySelector('.gs'); gs.addEventListener('scroll',()=>{ $('#gn').textContent=Math.round(gs.scrollLeft/gs.clientWidth)+1; });
+  $('#gx').addEventListener('click',()=>history.back());
 }
 function bigShow(x){
   const b=$('#big');
