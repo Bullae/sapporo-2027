@@ -404,7 +404,7 @@ function initMap(){
   ready=fetch('https://tiles.openfreemap.org/styles/positron').then(r=>r.json()).then(st=>{
     for(const l of st.layers){
       if(l.layout && l.layout['text-field']) l.layout['text-field']=KO;
-      if(/neighbourhood|quarter|housenumber|shield|poi/.test(l.id)) (l.layout=l.layout||{}).visibility='none';
+      if(/neighbourhood|quarter|suburb|other|hamlet|village|housenumber|shield|poi/.test(l.id)) (l.layout=l.layout||{}).visibility='none';
     }
     map=new maplibregl.Map({container:'map',style:st,center:[141.3515,43.0615],zoom:14.3,attributionControl:{compact:true},dragRotate:false,pitchWithRotate:false});
     map.touchZoomRotate.disableRotation();
