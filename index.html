@@ -198,7 +198,12 @@ ul,ol{list-style:none}
 
 /* ---------- 맛집 · 볼거리 */
 .fd{display:grid;grid-template-columns:84px 1fr;gap:12px;padding:12px}
+.fd .ph{position:relative;width:84px;height:84px;display:block}
 .fd img{width:84px;height:84px;border-radius:12px;object-fit:cover;display:block;background:var(--soft)}
+.fd .ph span{position:absolute;right:4px;bottom:4px;font-size:11px;font-weight:800;color:#fff;background:rgba(0,0,0,.55);border-radius:6px;padding:1px 6px}
+.sph{position:relative;display:block;width:100%}
+.sph span{position:absolute;right:10px;bottom:10px;display:flex;align-items:center;gap:4px;font-size:12px;font-weight:800;color:#fff;background:rgba(0,0,0,.55);border-radius:8px;padding:3px 8px}
+.sph span svg{width:14px;height:14px;stroke:#fff;fill:none;stroke-width:2}
 .fd .no{display:inline-flex;width:20px;height:20px;border-radius:99px;background:var(--accent);color:#fff;font-size:11px;font-weight:800;align-items:center;justify-content:center;margin-right:6px;vertical-align:1px}
 .fd h3{font-size:17px;font-weight:800;line-height:1.25}
 .fd .sign{font-size:13px;margin-top:2px;color:var(--ink);opacity:.8}
@@ -558,24 +563,26 @@ function paintFood(){
   $('#aseg').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.a===area));
   const areas=area<0?D.food:[D.food[area]];
   $('#fbody').innerHTML=areas.map(a=>`<div class="areah"><b>${esc(a.name)}</b><span>${esc(a.sub)}</span></div><div class="list">${a.items.map(f=>`
-    <article class="card fd"><img src="${f.img}" alt="" loading="lazy"><div>
+    <article class="card fd"><button class="ph" data-g="${f.g.join(',')}" data-t="${esc(f.name)}"><img src="${f.img}" alt="" loading="lazy">${gcount(f.g)?`<span>${gcount(f.g)}</span>`:''}</button><div>
       <h3>${esc(f.name)}</h3><div class="sign jp">${esc(f.jp)}</div><div class="c">${esc(f.cat)}</div>
       <dl><dt>위치</dt><dd>${esc(f.where)}</dd><dt>시간</dt><dd>${esc(f.hours)}</dd><dt>1/3~6</dt><dd><span class="pill ${f.st.k}">${esc(f.st.t)}</span></dd><dt>예약</dt><dd>${esc(f.rsv)}</dd></dl></div>
       <ul class="dish">${f.dishes.map(x=>`<li><div><b>${esc(x.ko)}</b><span class="jp">${esc(x.jp)}</span>${x.x?`<small>${esc(x.x)}</small>`:''}</div><em>${esc(x.p)}</em></li>`).join('')}</ul>
-      <div class="btns"><button class="btn p" data-p="${f.k}">${IC.map}지도</button><a class="btn" href="${gm(D.places[f.k])}" target="_blank" rel="noopener">${IC.ext}구글 지도</a>${f.tel.map(t=>`<a class="btn" href="${telh(t)}">${IC.tel}전화</a>`).join('')}</div>
+      <div class="btns">${gcount(f.g)?`<button class="btn" data-g="${f.g.join(',')}" data-t="${esc(f.name)}">${IC.cam}사진 ${gcount(f.g)}장</button>`:''}<button class="btn p" data-p="${f.k}">${IC.map}지도</button><a class="btn" href="${gm(D.places[f.k])}" target="_blank" rel="noopener">${IC.ext}구글 지도</a>${f.tel.map(t=>`<a class="btn" href="${telh(t)}">${IC.tel}전화</a>`).join('')}</div>
     </article>`).join('')}</div>`).join('');
   $('#fbody').querySelectorAll('[data-p]').forEach(b=>b.addEventListener('click',()=>focusPlace(b.dataset.p)));
+  $('#fbody').querySelectorAll('[data-g]').forEach(b=>b.addEventListener('click',()=>gallery(b.dataset.g.split(','),b.dataset.t)));
 }
 
 /* ---------------- 볼거리 */
 function renderSights(){
   const v=$('#v-sights');
   v.innerHTML=`<div class="top"><div><span class="s">1월 초에 열려 있는지 확인한 곳</span><h1>꼭 볼 것</h1></div></div>
-  <div class="list">${D.sights.map(s=>`<article class="card sg"><img src="${s.img}" alt="" loading="lazy"><div class="b">
+  <div class="list">${D.sights.map(s=>`<article class="card sg"><button class="sph" data-g="${s.g.join(',')}" data-t="${esc(s.name)}"><img src="${s.img}" alt="" loading="lazy">${gcount(s.g)?`<span>${IC.cam}${gcount(s.g)}</span>`:''}</button><div class="b">
     <h3>${esc(s.name)}</h3><div class="e">${esc(s.en)}</div><p>${esc(s.desc)}</p>
     <dl><dt>시간</dt><dd>${esc(s.time)}</dd><dt>1/3~6</dt><dd><span class="pill ${s.st.k}">${esc(s.st.t)}</span></dd><dt>가는 법</dt><dd>${esc(s.go)}</dd></dl>
-    <div class="btns"><button class="btn p" data-p="${s.k}">${IC.map}지도</button><a class="btn" href="${gm(D.places[s.k])}" target="_blank" rel="noopener">${IC.ext}구글 지도</a></div></div></article>`).join('')}</div>`;
+    <div class="btns">${gcount(s.g)?`<button class="btn" data-g="${s.g.join(',')}" data-t="${esc(s.name)}">${IC.cam}사진 ${gcount(s.g)}장</button>`:''}<button class="btn p" data-p="${s.k}">${IC.map}지도</button><a class="btn" href="${gm(D.places[s.k])}" target="_blank" rel="noopener">${IC.ext}구글 지도</a></div></div></article>`).join('')}</div>`;
   v.querySelectorAll('[data-p]').forEach(b=>b.addEventListener('click',()=>focusPlace(b.dataset.p)));
+  v.querySelectorAll('[data-g]').forEach(b=>b.addEventListener('click',()=>gallery(b.dataset.g.split(','),b.dataset.t)));
 }
 
 /* ---------------- 더보기 */
@@ -594,7 +601,7 @@ function renderSub(s){
   if(s==='trip') h=`<div class="sec"><h2>비행기</h2><div class="card">${D.flights.map(f=>`<div class="kv"><div class="l">${esc(f.d)}</div><div class="v">${esc(f.r)}</div><div class="x">${esc(f.c)} · ${esc(f.note)}</div></div>`).join('')}</div></div>
     <div class="sec"><h2>숙소</h2><div class="list">${D.stays.map(t=>`<div class="card stay"><div class="l" style="font-size:12px;color:var(--muted);font-weight:600">${esc(t.d)}</div><h3>${esc(t.name)}</h3><div class="en">${esc(t.en)}</div><div class="ad">${esc(t.ad)}<br><span class="jp">${esc(t.jp)}</span></div>
       <ul><li>${esc(t.room)} · ${esc(t.meal)}</li><li>${esc(t.io)}</li></ul>
-      <div class="btns"><button class="btn p" data-p="${t.p}">${IC.map}지도</button><a class="btn" href="${telh(t.tel)}">${IC.tel}${esc(t.tel)}</a></div></div>`).join('')}</div></div>`;
+      <div class="btns">${gcount(t.g)?`<button class="btn" data-g="${t.g.join(',')}" data-t="${esc(t.name)}">${IC.cam}사진 ${gcount(t.g)}장</button>`:''}<button class="btn p" data-p="${t.p}">${IC.map}지도</button><a class="btn" href="${telh(t.tel)}">${IC.tel}${esc(t.tel)}</a></div></div>`).join('')}</div></div>`;
   if(s==='show') h=`<p class="note" style="margin-top:4px">누르면 화면 가득 크게 나옵니다. 택시 기사에게 그대로 보여 주세요.</p><div class="card sec" style="margin-top:10px">${D.shows.map((x,i)=>`<button class="show" data-i="${i}"><span class="k">${esc(x.k)} · ${esc(x.d)}</span><b>${esc(x.en)}</b><span class="jp">${esc(x.jp)}</span></button>`).join('')}</div>`;
   if(s==='move') h=`<div class="card sec">${D.transport.map(t=>`<div class="tr"><div class="h"><b>${esc(t.date)} ${esc(t.kind)} · ${esc(t.route)}</b><span class="tm">${esc(t.time)}</span></div><div class="x">${esc(t.where)} · ${esc(t.rsv)}</div></div>`).join('')}</div>
     <p class="note">기차표는 타기 전에 역 발매기에서 사면 됩니다. 시각은 11/14 조회 기준이고, 정월 운행 공지는 아직 나오지 않았습니다.</p>`;
@@ -609,8 +616,10 @@ function renderSub(s){
   $('#bk').addEventListener('click',()=>history.back());
   v.querySelectorAll('[data-p]').forEach(b=>b.addEventListener('click',()=>focusPlace(b.dataset.p)));
   v.querySelectorAll('.show').forEach(b=>b.addEventListener('click',()=>bigShow(D.shows[+b.dataset.i])));
+  v.querySelectorAll('[data-g]').forEach(b=>b.addEventListener('click',()=>gallery(b.dataset.g.split(','),b.dataset.t)));
   bindCk(v);
 }
+function gcount(keys){ return (keys||[]).reduce((n,k)=>n+((D.gal[k]||[]).length),0); }
 function gallery(keys,title){
   const imgs=keys.flatMap(k=>D.gal[k]||[]); if(!imgs.length) return;
   const g=$('#gal');
