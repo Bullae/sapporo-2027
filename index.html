@@ -39,6 +39,7 @@ ul,ol{list-style:none}
 /* ---------- 잠금 화면 */
 #lock{position:fixed;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:22px;padding:24px max(24px,env(safe-area-inset-left)) 24px max(24px,env(safe-area-inset-right));background:var(--accent);color:#fff;text-align:center}
 #lock .t{font-size:13px;letter-spacing:.12em;opacity:.8}
+#lock .ic{width:96px;height:96px;border-radius:22px;box-shadow:0 8px 24px rgba(0,0,0,.25)}
 #lock h1{font-size:44px;font-weight:800;letter-spacing:-.03em;line-height:1.05}
 #lock .d{font-size:15px;opacity:.85}
 #lock form{display:flex;flex-direction:column;gap:10px;width:min(300px,100%);margin-top:18px}
@@ -301,6 +302,7 @@ ul,ol{list-style:none}
 </head>
 <body>
 <div id="lock">
+  <img class="ic" src="icon-512.png" alt="">
   <span class="t">홋카이도 가족 여행</span>
   <h1>겨울,<br>삿포로</h1>
   <span class="d">2027. 1. 2 – 1. 6</span>
