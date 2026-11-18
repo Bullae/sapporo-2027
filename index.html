@@ -191,7 +191,9 @@ ul,ol{list-style:none}
 #dpanel .c b{font-weight:700;margin-right:5px}
 #dpanel .how{display:block;font-size:12px;color:var(--muted)}
 @media (min-width:700px){#dpanel{left:auto;top:calc(env(safe-area-inset-top) + 62px);right:12px;bottom:12px;width:360px;max-height:none;border-radius:16px;box-shadow:0 4px 20px rgba(15,23,42,.18)}}
-.locbtn{position:absolute;z-index:500;right:12px;bottom:24px;width:44px;height:44px;border-radius:12px;background:var(--card);box-shadow:0 2px 8px rgba(15,23,42,.2);display:flex;align-items:center;justify-content:center}
+#map .maplibregl-ctrl-top-right{top:calc(env(safe-area-inset-top) + 58px)}
+#map .maplibregl-ctrl-group button{width:40px;height:40px}
+.locbtn{position:absolute;z-index:500;right:10px;top:calc(env(safe-area-inset-top) + 158px);width:40px;height:40px;border-radius:8px;background:var(--card);box-shadow:0 2px 8px rgba(15,23,42,.2);display:flex;align-items:center;justify-content:center}
 .locbtn svg{width:22px;height:22px;stroke:var(--accent);fill:none;stroke-width:2;stroke-linecap:round}
 
 /* ---------- 맛집 · 볼거리 */
@@ -298,6 +300,7 @@ ul,ol{list-style:none}
 #big .ad{font-size:18px;color:#444}
 #big button{position:absolute;top:calc(env(safe-area-inset-top) + 12px);right:16px;font-size:16px;font-weight:700;padding:10px 14px;border-radius:10px;background:#EEF1F6}
 .note{font-size:12px;color:var(--muted);margin:10px 4px 0}
+@media (min-width:700px){#v-map:has(#dpanel:not([hidden])) .maplibregl-ctrl-top-right,#v-map:has(#dpanel:not([hidden])) .locbtn{right:384px}}
 </style>
 </head>
 <body>
@@ -475,7 +478,7 @@ function initMap(){
     }
     map=new maplibregl.Map({container:'map',style:st,center:[141.3515,43.0615],zoom:14.3,attributionControl:{compact:true},dragRotate:false,pitchWithRotate:false,touchPitch:false,maxPitch:0,bearingSnap:180});
     map.touchZoomRotate.disableRotation(); map.keyboard.disableRotation();
-    map.addControl(new maplibregl.NavigationControl({showCompass:false}),'bottom-right');
+    map.addControl(new maplibregl.NavigationControl({showCompass:false}),'top-right');
     return new Promise(res=>{
       const done=()=>{ if(!map.getSource('route')){
         map.addSource('route',{type:'geojson',data:{type:'FeatureCollection',features:[]}});
