@@ -113,6 +113,33 @@ ul,ol{list-style:none}
 .tl .how{display:block;font-size:13px;color:var(--muted);margin-top:1px}
 .tl .go{width:30px;height:30px;border-radius:99px;background:var(--soft);display:flex;align-items:center;justify-content:center}
 .tl .go svg{width:16px;height:16px;stroke:var(--accent);fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.wk{padding:10px 8px 8px 0;overflow:hidden}
+.wh,.ws{display:grid;grid-template-columns:30px repeat(5,1fr);gap:3px;align-items:end}
+.wh{padding-bottom:6px;border-bottom:1.5px solid var(--ink)}
+.wh button{display:flex;flex-direction:column;align-items:center;line-height:1.1}
+.wh b{font-size:15px;font-weight:800}
+.wh span{font-size:11px;color:var(--muted);font-weight:600}
+.wb{position:relative;display:grid;grid-template-columns:30px repeat(5,1fr);gap:3px;margin-top:4px}
+.wt{position:relative}
+.wt span{position:absolute;right:4px;font-size:10px;color:var(--muted);font-variant-numeric:tabular-nums;transform:translateY(-6px)}
+.wc{position:relative;min-width:0}
+.wc>i{position:absolute;left:0;right:0;border-top:1px solid var(--line)}
+.we{position:absolute;left:0;right:0;border-radius:6px;background:var(--soft);padding:3px 4px;text-align:left;overflow:hidden;display:flex;flex-direction:column;gap:1px;word-break:keep-all}
+.we b{font-size:10.5px;font-weight:700;line-height:1.2}
+.we span{font-size:9.5px;line-height:1.25;color:var(--muted)}
+.we.k1,.we.k3{background:var(--accent-soft)}
+.we.k1 b,.we.k3 b,.we.k1 span{color:var(--accent)}
+.we.k3 span{color:var(--ink);font-size:10px;line-height:1.55}
+.we.k2{background:var(--card);border:1px dashed var(--muted)}
+.we.k4{background:transparent;padding:0 4px;justify-content:center}
+.we.k4 b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.we.k4 b{font-size:9.5px;color:var(--muted)}
+.ws{margin-top:6px;padding-top:6px;border-top:1.5px solid var(--ink);font-size:10.5px}
+.ws span{font-size:10px;color:var(--muted);text-align:right;padding-right:4px}
+.ws b{font-weight:700;text-align:center;line-height:1.2}
+.lg{display:flex;gap:12px;align-items:center;font-size:12px;color:var(--muted);margin:10px 4px 0;flex-wrap:wrap}
+.lg i{display:inline-block;width:14px;height:10px;border-radius:3px;margin-right:4px;vertical-align:-1px}
+.lg i.a{background:var(--soft)} .lg i.b{background:var(--accent-soft)} .lg i.c{border:1px dashed var(--muted)}
 .ov{padding:6px 0}
 .ov h3{display:flex;align-items:baseline;gap:8px;padding:12px 14px 6px;font-size:18px;font-weight:800}
 .ov h3 span{font-size:13px;color:var(--muted);font-weight:600}
@@ -355,13 +382,13 @@ function start(){
 /* ---------------- 일정 */
 function tripDay(){ const t=new Date(), s=new Date(D.start+'T00:00:00+09:00'), e=new Date(D.end+'T23:59:59+09:00');
   if(t<s){ return {pre:Math.ceil((s-t)/864e5)}; } if(t>e) return {post:true}; return {i:Math.floor((t-s)/864e5)}; }
-let dayIdx=0, planMode='day';
+let dayIdx=0, planMode='ov';
 function renderPlan(){
   const td=tripDay(); if(td.i!=null) dayIdx=Math.min(td.i,D.days.length-1);
   const badge=td.pre!=null?`출발까지 ${td.pre}일`:td.i!=null?`여행 ${td.i+1}일째`:'다녀왔어요';
   const v=$('#v-plan');
   v.innerHTML=`<div class="top"><div><span class="s">홋카이도 가족 여행 · 1/2 – 1/6</span><h1>${esc(D.title)}</h1></div><span class="dd">${badge}</span></div>
-  <div class="seg" role="group"><button data-m="day">날짜별</button><button data-m="ov">5일 한눈에</button></div>
+  <div class="seg" role="group"><button data-m="ov">5일 한눈에</button><button data-m="day">날짜별</button></div>
   <div id="planbody"></div>`;
   v.querySelectorAll('.seg button').forEach(b=>b.addEventListener('click',()=>{planMode=b.dataset.m; paintPlan();}));
   paintPlan();
@@ -370,7 +397,14 @@ function paintPlan(){
   $('#v-plan').querySelectorAll('.seg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.m===planMode));
   const pb=$('#planbody');
   if(planMode==='ov'){
-    pb.innerHTML=D.overview.map((o,i)=>`<div class="card ov sec"><h3>${o.date}<span>${esc(o.sub)}</span></h3><ul>${o.ev.map(e=>`<li class="k${e.k}"><span class="t">${e.t}</span><div><b>${esc(e.title)}</b>${e.sub&&e.k!==3?`<span>${esc(e.sub).replace(/ · 미정$|^미정$/,'')}</span>`:''}${e.k===3?`<span>${esc(e.sub)}</span>`:''}</div></li>`).join('')}</ul><div class="sl">잘 곳 <b>${esc(o.sleep)}</b></div></div>`).join('');
+    const H0=5,H1=21,PH=46, hrs=[]; for(let h=H0;h<H1;h++) hrs.push(h);
+    pb.innerHTML=`<div class="card wk sec"><div class="wh"><span></span>${D.overview.map((o,i)=>`<button data-i="${i}"><b>${o.date}</b><span>${esc(D.days[i].dow[0])}</span></button>`).join('')}</div>
+      <div class="wb" style="height:${(H1-H0)*PH}px"><div class="wt">${hrs.map(h=>`<span style="top:${(h-H0)*PH}px">${h}</span>`).join('')}</div>
+      ${D.overview.map((o,i)=>`<div class="wc" data-i="${i}">${hrs.map(h=>`<i style="top:${(h-H0)*PH}px"></i>`).join('')}${o.ev.map(e=>{ const top=(e.a-H0)*PH, ht=Math.max((e.b-e.a)*PH-3,16);
+        const tt=e.k===1?e.title.split(' · ')[0]:e.title; return `<button class="we k${e.k}" data-i="${i}" style="top:${top+1}px;height:${ht}px"><b>${esc(tt)}</b>${e.k!==3&&e.sub&&ht>30?`<span>${esc(e.sub).replace(/ · 미정$/,'')}</span>`:''}${e.k===3?`<span>${esc(e.sub).split(' · ').join('<br>')}</span>`:''}</button>`; }).join('')}</div>`).join('')}</div>
+      <div class="ws"><span>잘 곳</span>${D.overview.map(o=>`<b>${esc(o.sleep.replace('삿포로 ','').replace('료테이 ',''))}</b>`).join('')}</div></div>
+      <div class="lg"><span><i class="a"></i>일정</span><span><i class="b"></i>이동</span><span><i class="c"></i>미정</span><span style="margin-left:auto">칸을 누르면 그날 일정</span></div>`;
+    pb.querySelectorAll('[data-i]').forEach(b=>b.addEventListener('click',()=>{ dayIdx=+b.dataset.i; planMode='day'; paintPlan(); window.scrollTo(0,0); }));
     return;
   }
   const d=D.days[dayIdx];
