@@ -197,7 +197,15 @@ ul,ol{list-style:none}
 .fd{display:grid;grid-template-columns:84px 1fr;gap:12px;padding:12px}
 .fd img{width:84px;height:84px;border-radius:12px;object-fit:cover;display:block;background:var(--soft)}
 .fd .no{display:inline-flex;width:20px;height:20px;border-radius:99px;background:var(--accent);color:#fff;font-size:11px;font-weight:800;align-items:center;justify-content:center;margin-right:6px;vertical-align:1px}
-.fd h3{font-size:16px;font-weight:800;line-height:1.25}
+.fd h3{font-size:17px;font-weight:800;line-height:1.25}
+.fd .sign{font-size:13px;margin-top:2px;color:var(--ink);opacity:.8}
+.dish{grid-column:1 / -1;border-top:1px solid var(--line);padding-top:6px}
+.dish li{display:flex;justify-content:space-between;gap:10px;padding:7px 0;align-items:flex-start}
+.dish li+li{border-top:1px dashed var(--line)}
+.dish b{display:block;font-size:14px;font-weight:700}
+.dish span{display:block;font-size:12px;color:var(--muted)}
+.dish small{display:block;font-size:12px;color:var(--muted);margin-top:1px}
+.dish em{font-style:normal;font-size:14px;font-weight:800;white-space:nowrap;font-variant-numeric:tabular-nums}
 .fd .c{font-size:13px;color:var(--muted);margin-top:2px}
 .fd .m{font-size:14px;margin-top:6px;font-weight:600}
 .fd dl{display:grid;grid-template-columns:auto 1fr;gap:3px 10px;margin:8px 0 0;font-size:13px}
@@ -533,7 +541,7 @@ function focusPlace(k){
 let area=-1;
 function renderFood(){
   const v=$('#v-food');
-  v.innerHTML=`<div class="top"><div><span class="s">호텔에서 걸어서 · 정월 영업은 12월에 다시 확인</span><h1>맛집</h1></div></div>
+  v.innerHTML=`<div class="top"><div><span class="s">호텔에서 걸어서 · 가격은 2026년 11월 조사 · 정월 영업은 12월에 다시 확인</span><h1>맛집</h1></div></div>
   <div class="seg" id="aseg"><button data-a="-1">전체</button>${D.food.map((a,i)=>`<button data-a="${i}">${esc(a.name.replace(' 주변',''))}</button>`).join('')}</div>
   <div id="fbody"></div>
   <div class="btns" style="margin-top:18px"><button class="btn p" id="fmap">${IC.map}맛집 전부 지도에서 보기</button></div>`;
@@ -546,9 +554,9 @@ function paintFood(){
   const areas=area<0?D.food:[D.food[area]];
   $('#fbody').innerHTML=areas.map(a=>`<div class="areah"><b>${esc(a.name)}</b><span>${esc(a.sub)}</span></div><div class="list">${a.items.map(f=>`
     <article class="card fd"><img src="${f.img}" alt="" loading="lazy"><div>
-      <h3><span class="no">${f.n}</span>${esc(f.name)}</h3><div class="c">${esc(f.cat)} · ${esc(f.en)}</div>
-      <div class="m">${esc(f.menu)}</div>
+      <h3>${esc(f.name)}</h3><div class="sign jp">${esc(f.jp)}</div><div class="c">${esc(f.cat)}</div>
       <dl><dt>위치</dt><dd>${esc(f.where)}</dd><dt>시간</dt><dd>${esc(f.hours)}</dd><dt>1/3~6</dt><dd><span class="pill ${f.st.k}">${esc(f.st.t)}</span></dd><dt>예약</dt><dd>${esc(f.rsv)}</dd></dl></div>
+      <ul class="dish">${f.dishes.map(x=>`<li><div><b>${esc(x.ko)}</b><span class="jp">${esc(x.jp)}</span>${x.x?`<small>${esc(x.x)}</small>`:''}</div><em>${esc(x.p)}</em></li>`).join('')}</ul>
       <div class="btns"><button class="btn p" data-p="${f.k}">${IC.map}지도</button><a class="btn" href="${gm(D.places[f.k])}" target="_blank" rel="noopener">${IC.ext}구글 지도</a>${f.tel.map(t=>`<a class="btn" href="${telh(t)}">${IC.tel}전화</a>`).join('')}</div>
     </article>`).join('')}</div>`).join('');
   $('#fbody').querySelectorAll('[data-p]').forEach(b=>b.addEventListener('click',()=>focusPlace(b.dataset.p)));
